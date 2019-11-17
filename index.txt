@@ -1,0 +1,192 @@
+import React, { Component } from "react";
+import {
+  SafeAreaView, StyleSheet, Animated, Dimensions, View, Platform, Text
+} from "react-native";
+import * as shape from "d3-shape";
+import Svg, {
+  Path,
+  Circle
+} from 'react-native-svg';
+import { interpolate } from 'flubber';
+import { tween, easing } from 'popmotion';
+
+
+const AnimatedSvg = Animated.createAnimatedComponent(Svg);
+// const AnimatedPath = Animated.createAnimatedComponent(Path);
+const width = Dimensions.get("window").width;
+const height = 300;
+const types = ['upset', 'sad', 'neutral', 'smile', 'excited'];
+const PATHS = {
+  "upset": "M141.5 132.55C140.92 75.87 120.92 48.22 81.5 49.63C42.09 51.03 22.09 78.67 21.5 132.55L141.5 132.55Z",
+  "sad": "M122.32 87.65C121.94 68.08 108.83 58.53 83 59.02C57.17 59.5 44.06 69.04 43.68 87.65L122.32 87.65Z",
+  "neutral": "M38.02 58.05L99.77 40.83L102.99 52.35L41.23 69.57L38.02 58.05Z",
+  "smile": "M122.32 64.68C121.94 84.25 108.83 93.79 83 93.31C57.17 92.82 44.06 83.28 43.68 64.68L122.32 64.68Z",
+  "excited": "M142.99 49.74C142.4 106.42 122.4 134.06 82.99 132.66C43.57 131.26 23.57 103.62 22.99 49.74L142.99 49.74Z",
+  "left-eye": "M30.43 16.78C30.43 24.39 24.29 30.57 16.72 30.57C9.15 30.57 3 24.39 3 16.78C3 9.18 9.15 3 16.72 3C24.29 3 30.43 9.18 30.43 16.78Z",
+  "right-eye": "M162.99 16.79C162.99 24.4 156.84 30.57 149.27 30.57C141.7 30.57 135.56 24.4 135.56 16.79C135.56 9.18 141.7 3.01 149.27 3.01C156.84 3.01 162.99 9.18 162.99 16.79Z"
+};
+
+const backgroundColor = "white";
+//hideous
+const getPath1 = (eye, m = 0) => {
+  let position = 1;
+  switch (eye) {
+    case 'left':
+      position = 1.5
+      break;
+    default:
+      position = 4.5
+      break;
+  }
+  const w = (0);
+  // const w = (50 * position);
+
+  //position eye
+  const left = shape.line().x(d => d.x).y(d => d.y).curve(shape.curveBasisClosed)([
+    { x: 60 + w, y: 40 },
+    { x: 50 + w, y: 40 },
+    { x: 60 + w, y: 35 },
+  ]);
+  const right = shape.line().x(d => d.x).y(d => d.y).curve(shape.curveBasisClosed)([
+    // right
+    { x: 100 + w, y: eye === 'left' ? 0 : 10 },
+    { x: 100 + w, y: eye === 'left' ? 0 : 10 },
+    { x: 50 + w, y: 15 },
+    // curve
+    { x: 10 + w, y: eye === 'left' ? 10 : 0 },
+    { x: 14 + w, y: eye === 'left' ? 15 : 0 },
+    // side left
+    { x: 10 + w, y: 10 },
+    { x: 55 + w, y: 120 - m },
+  ]);
+  return `${left} ${right} `;
+};
+//ok
+const getPath = (eye, m = 0) => {
+  let position = 1;
+  switch (eye) {
+    case 'left':
+      position = 1.5
+      break;
+    default:
+      position = 4.5
+      break;
+  }
+  // const w = (50 * position);
+  const w = (0);
+  //position eye
+  const left = shape.line().x(d => d.x).y(d => d.y).curve(shape.curveBasisClosed)([
+    { x: eye === 'left' ? 60 + w : 50 + w, y: 20 },
+    { x: eye === 'left' ? 50 + w : 40 + w, y: 20 },
+    { x: eye === 'left' ? 60 + w : 50 + w, y: 25 },
+  ]);
+  const right = shape.line().x(d => d.x).y(d => d.y).curve(shape.curveBasisClosed)([
+    // right
+    { x: 100 + w, y: 15 },
+    { x: 100 + w, y: 15 },
+    { x: 100 + w, y: eye === 'left' ? 0 : 10 },
+    // { x: 100 + w, y: eye === 'left' ? 0 : 10 },
+    // curve
+    { x: eye === 'left' ? 10 + w : 10 + w, y: eye === 'left' ? 12 : 0 },
+    { x: eye === 'left' ? 10 + w : 0 + w, y: eye === 'left' ? 12 : 20 },
+    // side left
+    // { x: 0 + w, y: 15 },
+    // { x: 0 + w, y: 15 },
+    // { x: eye === 'left' ? 5 + w : 35 + w, y: eye === 'left' ? 35 : 40 },
+    { x: eye === 'left' ? 35 + w : 70 + w, y: eye === 'left' ? 60 - m : 50 },
+    { x: eye === 'left' ? 85 + w : 90 + w, y: eye === 'left' ? 35 : 40 },
+  ]);
+  return `${left} ${right} `;
+};
+const getMouth = (eye) => {
+  const mouth = shape.line().x(d => d.x).y(d => d.y).curve(shape.curveBasis)([
+    { x: 150, y: eye === 'face1' ? 220 : 205 },
+    { x: 170, y: eye === 'face1' ? 200 : 210 },
+    { x: 190, y: eye === 'face1' ? 210 : 213 },
+    { x: 210, y: eye === 'face1' ? 190 : 215 },
+    { x: 220, y: eye === 'face1' ? 195 : 217 },
+    { x: 235, y: eye === 'face1' ? 205 : 218 },
+    { x: 250, y: eye === 'face1' ? 220 : 220 },
+  ]);
+  return `${mouth}`
+}
+
+
+class App extends React.Component {
+  value = new Animated.Value(0);
+  state = {
+    path: PATHS.neutral,
+    type: "neutral",
+
+    d1: getPath('left'),
+    daux: getPath1('left'),
+    d2: getPath('right'),
+    d3: getMouth('face1'),
+    d: ''
+  };
+  interpolatePaths = (type = 'd1') => {
+    const interpolator = interpolate(this.state.d1, this.state[type]);
+    tween({
+      duration: 400,
+      ease: easing.easeInOut,
+      from: { i: 0 },
+      to: { i: 1 }
+    })
+      .pipe(({ i }) => ({ path: interpolator(i) }))
+      .start(({ path }) => {
+        this.setState({
+          d: path
+        })
+      })
+  }
+  componentDidMount = () => {
+    const self = this
+    let num = 0
+    // const time = setInterval(() => {
+    //   self.setState({
+    //     d: getPath('left', num++),
+    //     d2: getPath('right', num++),
+    //     // d3: getMouth()
+    //   });
+    //   if (num === 50) {
+    //     clearInterval(time)
+    //   }
+    // }, 10)
+    this.interpolatePaths('d1')
+    setTimeout(() => {
+      this.interpolatePaths('daux')
+
+    }, 2000)
+  }
+  render() {
+    const { value, state: { d, d1, d2, d3, daux } } = this;
+
+    return (
+      <View style={styles.container}>
+        <View {...{ width }} >
+          <AnimatedSvg width={(width)} {...{ height }}>
+            <Path fill={backgroundColor} strokeWidth="3" stroke="black"  {...{ d }} />
+            {/* <Path strokeWidth="3" stroke="black"  {...{ d }} /> */}
+            {/* <Path fill={backgroundColor} strokeWidth="3" stroke="black"  {...{ d: d2 }} /> */}
+            {/* <Path strokeWidth="3" stroke="black"  {...{ d: d2 }} /> */}
+            <Path fill='#ddc7f3' strokeWidth="3" stroke="black"  {...{ d: d3 }} />
+          </AnimatedSvg>
+        </View>
+      </View >
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  // container: {
+  //   backgroundColor,
+  // },
+  container: {
+    flex: 1,
+    backgroundColor: "rgb(221,199,243)",
+    justifyContent: "center",
+    alignItems: 'center',
+  },
+});
+
+export default App;
