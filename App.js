@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, Dimensions } from 'react-native';
 
+
 import { interpolate } from 'flubber';
 import { tween, easing } from 'popmotion';
 
@@ -36,15 +37,16 @@ const PATHS = {
     "mouth": "M42.29 69.72L45.85 71.99L50.44 73.69L55.36 75.57L60.05 76.32L61.88 76.32L65.66 76.32L67.11 76.03L71.61 74.41L73.06 73.69L74.05 73.03L76.32 71.99L72.73 74.41L66.57 76.67L61 76.67L54.63 75.86L49.26 73.92L44.68 71.99L41.1 69.72L38.32 67.14L42.29 69.72Z"
   },
 };
-const interpolatePaths = (type, eye_left, eye_right, mouth, background, setEye_left, setEye_right, setMouth, setBackground) => {
+const interpolatePaths = (value = 1, type, eye_left, eye_right, mouth, background, setEye_left, setEye_right, setMouth, setBackground) => {
   const interpolator = interpolate(eye_left, PATHS[type]["left"], { maxSegmentLength: 2 });
   const interpolator_right = interpolate(eye_right, PATHS[type]["right"], { maxSegmentLength: 2 });
   const interpolator_mouth = interpolate(mouth, PATHS[type]["mouth"], { maxSegmentLength: 2 });
+
   tween({
     duration: 400,
     ease: easing.easeInOut,
     from: { i: 0, background: background },
-    to: { i: 1, background: PATHS[type].background }
+    to: { i: value, background: PATHS[type].background }
   })
     .pipe(({ i, background }) => ({ left: interpolator(i), right: interpolator_right(i), mouth: interpolator_mouth(i), background }))
     .start(({ left, right, mouth, background }) => {
@@ -58,17 +60,18 @@ const onResponderMove = ({ nativeEvent }) => {
   console.log('onResponderMove :', nativeEvent);
 }
 export default () => {
+  console.log('render');
   const [eye_left, setEye_left] = useState(PATHS.sad.left)
   const [eye_right, setEye_right] = useState(PATHS.sad.right)
   const [mouth, setMouth] = useState(PATHS.sad.mouth)
   const [background, setBackground] = useState(PATHS.sad.background)
-
+  const [value, setValue] = useState(0)
   return (
     <View style={[styles.container, { backgroundColor: background }]}
       onResponderMove={onResponderMove}
     >
       <View style={styles.headings}>
-        <Text style={styles.heading}>How you been?</Text>
+        <Text style={styles.heading}>How are you?</Text>
       </View>
       <View style={styles.svgWrapper}>
         <Svg width={width} height={height / 4} viewBox={`0 0 ${width / 3.5} 110`} style={styles.svgContainer}>
@@ -82,7 +85,7 @@ export default () => {
         </Svg>
         <View style={styles.feedbackWrapper}>
           {emojis.map((emoji, index) => (
-            <TouchableOpacity key={types[index]} onPress={() => interpolatePaths(types[index], eye_left, eye_right, mouth, background, setEye_left, setEye_right, setMouth, setBackground)}>
+            <TouchableOpacity key={types[index]} onPress={() => interpolatePaths(1, types[index], eye_left, eye_right, mouth, background, setEye_left, setEye_right, setMouth, setBackground)}>
               <Text style={{ paddingHorizontal: 20, fontSize: 40 }}>{emoji}</Text>
             </TouchableOpacity>
           ))}
